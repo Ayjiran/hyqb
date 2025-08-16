@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q绑查询-隐Box</title>
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f9fafb;
+            min-height: 100vh;
+            color: #111827;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        /* 标题样式 */
+        header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* 表单样式 */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        
+        button {
+            width: 100%;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        /* 原生查询按钮样式 */
+        .native-query-btn {
+            background-color: #10b981; /* 绿色区分主查询按钮 */
+            margin-top: 0.5rem;
+        }
+
+        .native-query-btn:hover {
+            background-color: #059669;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid #3b82f6;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading p {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        /* 结果和错误样式 */
+        .result, .error {
+            display: none;
+            margin-bottom: 1rem;
+        }
+        
+        .result h2, .error h2 {
+            margin-bottom: 0.75rem;
+        }
+        
+        .result-content {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        
+        .error {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            color: #dc2626;
+            font-size: 0.875rem;
+        }
+        
+        /* 展开面板样式 */
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .notice-icon {
+            color: #6b7280;
+            transition: transform 0.3s ease;
+        }
+        
+        .notice-content {
+            display: none;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+            gap: 0.5rem;
+            flex-direction: column;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        .border-b {
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .pb-2 {
+            padding-bottom: 0.5rem;
+        }
+        
+        .last\:border-0:last-child {
+            border-bottom: 0;
+        }
+        
+        .last\:mb-0:last-child {
+            margin-bottom: 0;
+        }
+        
+        .last\:pb-0:last-child {
+            padding-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面标题 -->
+        <header>
+            <h1>Q绑查询-幻隐（<a href="./chasj.html">切换</a>）</h1>
+        </header>
+        
+        <!-- 查询表单 -->
+        <div class="card">
+            <form id="queryForm">
+                <input 
+                    type="text" 
+                    id="queryInput" 
+                    placeholder="请输入QQ..." 
+                    required
+                >
+                
+                <button type="submit">查询</button>
+                <!-- 新增原生查询按钮 -->
+                <button type="button" id="nativeQueryBtn" class="native-query-btn">原生查询</button>
+            </form>
+        </div>
+        
+        <!-- 加载状态 -->
+        <div id="loading" class="loading card">
+            <div class="spinner"></div>
+            <p>查询中...</p>
+        </div>
+        
+        <!-- 结果展示区域 -->
+        <div id="result" class="result card">
+            <h2>查询结果</h2>
+            <div id="resultContent" class="result-content"></div>
+        </div>
+        
+        <!-- 错误提示 -->
+        <div id="error" class="error">
+            <p id="errorMessage">查询失败，请重试</p>
+        </div>
+        
+        <!-- 第一个展开面板：查询成功或失败问题 -->
+        <div class="card">
+            <div id="noticeHeader1" class="notice-header">
+                <h2>查询成功或者失败问题？</h2>
+                <span id="noticeIcon1" class="notice-icon">▼</span>
+            </div>
+            <div id="noticeContent1" class="notice-content">
+                <p>查询成功：为什么手机号中间会有四位数****，原因详见《隐私查询须知》！</p>
+                <p>未泄露：说明绑定的手机号未泄露信息，字面意思，请换号查询即可，没有任何解决办法！</p>
+                <p>有的QQ查不到，换个QQ，咱们数据库已经是最全面的了，全网最新数据，可以说是，咱们查不到，别人任何人也查不到，注意辨别！</p>
+                <p>仅供查询自己的，查询别人的后果自负！</p>
+            </div>
+        </div>
+        
+        <!-- 第二个展开面板：隐私查询须知 -->
+        <div class="card">
+            <div id="noticeHeader2" class="notice-header">
+                <h2>隐私查询须知！</h2>
+                <span id="noticeIcon2" class="notice-icon">▼</span>
+            </div>
+            <div id="noticeContent2" class="notice-content">
+                <p>根据《中华人民共和国民法典》第一千零三十二条，自然人享有隐私权，任何组织或者个人不得以刺探、侵扰、泄露、公开等方式侵害他人的隐私权。手机号属于个人信息，未经同意查询他人QQ号绑定的手机号(qq号），构成对他人隐私权的侵犯，需承担停止侵害、赔礼道歉、赔偿损失等侵权责任。</p>
+                <p>依据《中华人民共和国治安管理处罚法》第四十二条，偷窥、偷拍、窃听、散布他人隐私的，可处五日以下拘留或者五百元以下罚款；情节较重的，处五日以上十日以下拘留，可以并处五百元以下罚款。</p>
+                <p>根据《中华人民共和国刑法》第二百五十三条之一，窃取或者以其他方法非法获取公民个人信息的，情节严重的，处三年以下有期徒刑或者拘役，并处或者单处罚金；情节特别严重的，处三年以上七年以下有期徒刑，并处罚金。</p>
+                <p>为避免用户违规违法使用，现在查到的信息根据相关法律法规整改，中间会隐藏起来，保护隐私！</p>
+                <p>本功能只为忘记自己qq绑定手机号的人准备，如果查询别人手机号发生法律责任，由您自己承担，禁止用于违法乱纪，后果自负。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 第一个面板的展开/折叠功能
+        const noticeHeader1 = document.getElementById('noticeHeader1');
+        const noticeContent1 = document.getElementById('noticeContent1');
+        const noticeIcon1 = document.getElementById('noticeIcon1');
+        
+        noticeHeader1.addEventListener('click', () => {
+            noticeContent1.style.display = noticeContent1.style.display === 'flex' ? 'none' : 'flex';
+            noticeIcon1.classList.toggle('rotate-180');
+        });
+        
+        // 第二个面板的展开/折叠功能
+        const noticeHeader2 = document.getElementById('noticeHeader2');
+        const noticeContent2 = document.getElementById('noticeContent2');
+        const noticeIcon2 = document.getElementById('noticeIcon2');
+        
+        noticeHeader2.addEventListener('click', () => {
+            noticeContent2.style.display = noticeContent2.style.display === 'flex' ? 'none' : 'flex';
+            noticeIcon2.classList.toggle('rotate-180');
+        });
+        
+        // 获取DOM元素
+        const form = document.getElementById('queryForm');
+        const input = document.getElementById('queryInput');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        // 获取原生查询按钮
+        const nativeQueryBtn = document.getElementById('nativeQueryBtn');
+        
+        // 原生查询按钮点击事件
+        nativeQueryBtn.addEventListener('click', () => {
+            const qq = input.value.trim();
+            if (!qq) {
+                alert('请输入QQ号');
+                return;
+            }
+            // 跳转原生查询页面（携带QQ号参数）
+            window.location.href = `https://box.ayjrw.cn/qb/1/api.php?km=grnb69&sj=${encodeURIComponent(qq)}`;
+        });
+        
+        // 表单提交事件
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const queryValue = input.value.trim();
+            if (!queryValue) return;
+            
+            // 重置状态
+            result.style.display = 'none';
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            
+            try {
+                // 调用API
+                const url = `https://box.ayjrw.cn/qb/1/api.php?km=grnb69&sj=${encodeURIComponent(queryValue)}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`网络错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResult(data);
+                
+            } catch (err) {
+                errorMessage.textContent = err.message || '查询失败，请重试';
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        // 显示查询结果
+        function displayResult(data) {
+            resultContent.innerHTML = '';
+            
+            if (typeof data === 'object' && data !== null) {
+                if (Array.isArray(data)) {
+                    // 数组类型结果
+                    data.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'mb-2 pb-2 border-b last:border-0 last:mb-0 last:pb-0';
+                        div.innerHTML = `<strong>${index + 1}.</strong> ${JSON.stringify(item)}`;
+                        resultContent.appendChild(div);
+                    });
+                } else {
+                    // 对象类型结果
+                    for (const [key, value] of Object.entries(data)) {
+                        const div = document.createElement('div');
+                        div.className = 'mb-2 pb-2 border-b last:border-0 last:mb-0 last:pb-0';
+                        div.innerHTML = `<strong>${key}:</strong> ${JSON.stringify(value)}`;
+                        resultContent.appendChild(div);
+                    }
+                }
+            } else {
+                // 其他类型结果
+                resultContent.textContent = data.toString();
+            }
+            
+            result.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
