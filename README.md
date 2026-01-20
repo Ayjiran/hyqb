@@ -18,7 +18,7 @@
 <p>产品只是查询，但是中间是****隐藏起来的，并不会获取其他人的个人资料！</p><br>
 =====<br>
 官方群聊如何加入？<br>
-私人微信：grnb69(备注：加技术群)<br>
+官方群聊：<a href="weixin://dl/business/?appid=wx22813092ef75fca7&path=pages/goods_details/index&query=id%3D590">点我加群</a><br>
 官网：www.ayjrw.com<br>
 防止失联，有需要可以加，方便售后，以及其他服务！<br>
 接软件网站开发定制单！<br>
